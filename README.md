@@ -4,7 +4,8 @@ This plugin integrates the best IDE known as PhpStorm with the best php eventing
 
 
 ## Features
-- find attached events
+- go to attached events on event declaration
+- go to attached events on event invocation
 
 
 ### Find attached events
