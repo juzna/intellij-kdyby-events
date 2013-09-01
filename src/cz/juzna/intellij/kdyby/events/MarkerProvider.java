@@ -9,7 +9,6 @@ import com.jetbrains.php.lang.psi.elements.Field;
 import com.jetbrains.php.lang.psi.elements.Method;
 import com.jetbrains.php.lang.psi.elements.MethodReference;
 import com.jetbrains.php.lang.psi.elements.PhpClass;
-import icons.PhpIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -31,7 +30,7 @@ public class MarkerProvider extends RelatedItemLineMarkerProvider
 
 			if (methods != null && methods.size() > 0) {
 				NavigationGutterIconBuilder<PsiElement> builder =
-						NavigationGutterIconBuilder.create(PhpIcons.TwigFileIcon).
+						NavigationGutterIconBuilder.create(Icons.EVENT_ICON).
 								setTargets(methods).
 								setTooltipText("Navigate to attached event");
 				result.add(builder.createLineMarkerInfo(element));
@@ -50,7 +49,7 @@ public class MarkerProvider extends RelatedItemLineMarkerProvider
 
 						if (methods != null && methods.size() > 0) {
 							NavigationGutterIconBuilder<PsiElement> builder =
-									NavigationGutterIconBuilder.create(PhpIcons.TwigFileIcon).
+									NavigationGutterIconBuilder.create(Icons.EVENT_ICON).
 											setTargets(methods).
 											setTooltipText("Navigate to attached event");
 							result.add(builder.createLineMarkerInfo(element));
