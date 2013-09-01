@@ -37,10 +37,13 @@ public class EventReferenceContributor extends PsiReferenceContributor
 				}
 
 				if (element instanceof StringLiteralExpression && isInSubscriber) {
-					String[] tmp = ((StringLiteralExpression) element).getContents().split("::");
-					String className = tmp[0], fieldName = tmp[1];
+					String contents = ((StringLiteralExpression) element).getContents();
+					if (contents.contains("::")) {
+						String[] tmp = contents.split("::");
+						String className = tmp[0], fieldName = tmp[1];
 
-					return new PsiReference[] { new EventNameReference(element, className, fieldName) };
+						return new PsiReference[] { new EventNameReference(element, className, fieldName) };
+					}
 				}
 
 				return new PsiReference[0];
