@@ -7,6 +7,7 @@ This plugin integrates the best IDE known as PhpStorm with the best php eventing
 - go to attached events on event declaration
 - go to attached events on event invocation
 - event names autocompletion
+- event name click-thru to event declaration
 
 
 ### Find attached events

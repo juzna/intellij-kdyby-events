@@ -39,5 +39,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <codeInsight.lineMarkerProvider language="PHP" implementationClass="cz.juzna.intellij.kdyby.events.MarkerProvider" />
       <completion.contributor language="PHP" implementationClass="cz.juzna.intellij.kdyby.events.CompletionContributor" />
+      <psi.referenceContributor implementation="cz.juzna.intellij.kdyby.events.EventReferenceContributor" />
   </extensions>
 </idea-plugin>
