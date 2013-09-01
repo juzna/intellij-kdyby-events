@@ -78,7 +78,7 @@ public class EventsUtil {
 								}
 
 								String eventNameClass, eventNameField;
-								eventNameClass = tmp[0];
+								eventNameClass = tmp[0].replace("\\\\", "\\");
 								eventNameField = tmp[1];
 
 								// match?

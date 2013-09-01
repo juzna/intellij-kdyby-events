@@ -40,7 +40,7 @@ public class EventReferenceContributor extends PsiReferenceContributor
 					String contents = ((StringLiteralExpression) element).getContents();
 					if (contents.contains("::")) {
 						String[] tmp = contents.split("::");
-						String className = tmp[0], fieldName = tmp[1];
+						String className = tmp[0].replace("\\\\", "\\"), fieldName = tmp[1];
 
 						return new PsiReference[] { new EventNameReference(element, className, fieldName) };
 					}
