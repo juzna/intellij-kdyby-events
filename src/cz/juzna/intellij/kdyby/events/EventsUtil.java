@@ -25,75 +25,79 @@ public class EventsUtil {
 
 		// najdu tridy implementujici subscriber
 		PhpIndex phpIndex = PhpIndex.getInstance(project);
-		for (PhpClass clazz : phpIndex.getAllSubclasses("Kdyby\\Events\\Subscriber")) {
+		for (final PhpClass clazz : phpIndex.getAllSubclasses("Kdyby\\Events\\Subscriber")) {
 
 			final Method method = clazz.findMethodByName("getSubscribedEvents");
 			if (method == null) continue;
 
 			// find all elements of returned array
-			method.acceptChildren(new PhpRecursiveElementVisitor() {
-				@Override
-				public void visitPhpReturn(PhpReturn r) {
-					if (r.getArgument() instanceof ArrayCreationExpression) {
-						ArrayCreationExpression arr = (ArrayCreationExpression) r.getArgument();
+			try {
+				method.acceptChildren(new PhpRecursiveElementVisitor() {
+					@Override
+					public void visitPhpReturn(PhpReturn r) {
+						if (r.getArgument() instanceof ArrayCreationExpression) {
+							ArrayCreationExpression arr = (ArrayCreationExpression) r.getArgument();
 
-						assert arr != null;
-						for (PsiElement el_ : arr.getChildren()) {
-							String fullEventName;
-							String callbackMethodName;
+							assert arr != null;
+							for (PsiElement el_ : arr.getChildren()) {
+								String fullEventName;
+								String callbackMethodName;
 
-							if (el_ instanceof ArrayHashElement) { // key => value
-								ArrayHashElement el;
-								el = (ArrayHashElement) el_;
-								if ( ! (el.getKey() instanceof StringLiteralExpression)) {
-									// invalid key
+								if (el_ instanceof ArrayHashElement) { // key => value
+									ArrayHashElement el;
+									el = (ArrayHashElement) el_;
+									if ( ! (el.getKey() instanceof StringLiteralExpression)) {
+										// invalid key
+										continue;
+									}
+									if ( ! (el.getValue() instanceof StringLiteralExpression)) {
+										// invalid value
+										continue;
+									}
+
+									fullEventName = ((StringLiteralExpression) el.getKey()).getContents();
+									callbackMethodName = ((StringLiteralExpression) el.getValue()).getContents();
+
+								} else {
+									if ( ! (el_.getFirstChild() instanceof StringLiteralExpression)) {
+										// invalid value
+										continue;
+									}
+
+									fullEventName = ((StringLiteralExpression) el_.getFirstChild()).getContents();
+									if ( ! fullEventName.contains("::")) {
+										continue;
+									}
+									callbackMethodName = fullEventName.split("::")[1];
+								}
+
+								String[] tmp = fullEventName.split("::");
+								if (tmp.length != 2) {
+									// invalid event name
 									continue;
 								}
-								if ( ! (el.getValue() instanceof StringLiteralExpression)) {
-									// invalid value
-									continue;
-								}
 
-								fullEventName = ((StringLiteralExpression) el.getKey()).getContents();
-								callbackMethodName = ((StringLiteralExpression) el.getValue()).getContents();
+								String eventNameClass, eventNameField;
+								eventNameClass = tmp[0];
+								eventNameField = tmp[1];
 
-							} else {
-								if ( ! (el_.getFirstChild() instanceof StringLiteralExpression)) {
-									// invalid value
-									continue;
-								}
-
-								fullEventName = ((StringLiteralExpression) el_.getFirstChild()).getContents();
-								if ( ! fullEventName.contains("::")) {
-									continue;
-								}
-								callbackMethodName = fullEventName.split("::")[1];
-							}
-
-							String[] tmp = fullEventName.split("::");
-							if (tmp.length != 2) {
-								// invalid event name
-								continue;
-							}
-
-							String eventNameClass, eventNameField;
-							eventNameClass = tmp[0];
-							eventNameField = tmp[1];
-
-							// match?
-							if (forField.getContainingClass().getPresentableFQN().equals(eventNameClass) && forField.getName().equals(eventNameField)) {
-								Method cb = method.getContainingClass().findMethodByName(callbackMethodName);
-								if (cb != null) {
-									result.add(cb);
+								// match?
+								if (forField.getContainingClass().getPresentableFQN().equals(eventNameClass) && forField.getName().equals(eventNameField)) {
+									Method cb = method.getContainingClass().findMethodByName(callbackMethodName);
+									if (cb != null) {
+										result.add(cb);
+									}
 								}
 							}
 						}
 
+						super.visitPhpReturn(r);
 					}
-
-					super.visitPhpReturn(r);
-				}
-			});
+				});
+			} catch (Exception e) {
+				System.out.println("Error parsing class " + clazz.getPresentableFQN());
+				e.printStackTrace();
+			}
 		}
 
 		return result.size() > 0 ? result : null;
