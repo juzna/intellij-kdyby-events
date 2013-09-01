@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>cz.juzna.intellij.kdyby.events</id>
   <name>Kdyby Events support</name>
-  <version>0.1</version>
+  <version>0.1.1</version>
   <vendor email="juzna.cz@gmail.com" url="http://juzna.cz">Jan Dolecek</vendor>
 
     <depends>com.intellij.modules.lang</depends>
@@ -12,6 +12,7 @@
   ]]></description>
 
   <change-notes><![CDATA[
+    0.1.1 - bug fixes
     0.1 - first proof of concept
   ]]>
   </change-notes>
