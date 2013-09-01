@@ -64,6 +64,9 @@ public class EventsUtil {
 								}
 
 								fullEventName = ((StringLiteralExpression) el_.getFirstChild()).getContents();
+								if ( ! fullEventName.contains("::")) {
+									continue;
+								}
 								callbackMethodName = fullEventName.split("::")[1];
 							}
 
