@@ -1,30 +1,25 @@
 package cz.juzna.intellij.kdyby.events;
 
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import com.jetbrains.php.PhpIndex;
 import com.jetbrains.php.lang.psi.elements.*;
 import com.jetbrains.php.lang.psi.visitors.PhpRecursiveElementVisitor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 
 public class EventsUtil {
-	/**
-	 * Najde vsechny handlery (metody), ktere se pripojuji na event (property)
-	 *
-	 * Napr. pro Pd\Order\OrderService::$onStatusChanged najde metody BackOfficeUpdater::updateOrderStatus()
-	 *
-	 * @param project
-	 * @param forField
-	 * @return
-	 */
-	public static List<Method> findEventHandlers(Project project, final Field forField) {
-		final List<Method> result = new ArrayList<Method>();
 
-		// najdu tridy implementujici subscriber
-		PhpIndex phpIndex = PhpIndex.getInstance(project);
+
+	public static Collection<EventListener> findListeners(final Field field) {
+		final Collection<EventListener> result = new ArrayList<EventListener>();
+		final PhpClass phpClass = field.getContainingClass();
+
+		PhpIndex phpIndex = PhpIndex.getInstance(field.getProject());
 		for (final PhpClass clazz : phpIndex.getAllSubclasses("Kdyby\\Events\\Subscriber")) {
 
 			final Method method = clazz.findMethodByName("getSubscribedEvents");
@@ -40,55 +35,15 @@ public class EventsUtil {
 
 							assert arr != null;
 							for (PsiElement el_ : arr.getChildren()) {
-								String fullEventName;
-								String callbackMethodName;
-
-								if (el_ instanceof ArrayHashElement) { // key => value
-									ArrayHashElement el;
-									el = (ArrayHashElement) el_;
-									if ( ! (el.getKey() instanceof StringLiteralExpression)) {
-										// invalid key
+								for (EventListener listener : resolveListeners(el_)) {
+									if (listener == null || !(listener.getEvent() instanceof NetteEvent)) {
 										continue;
 									}
-									if ( ! (el.getValue() instanceof StringLiteralExpression)) {
-										// invalid value
-										continue;
-									}
+									NetteEvent event = (NetteEvent) listener.getEvent();
+									if (phpClass.getPresentableFQN().equals(event.getClassName())
+											&& (field.getName().equals(event.getEventName()))) {
 
-									fullEventName = ((StringLiteralExpression) el.getKey()).getContents();
-									callbackMethodName = ((StringLiteralExpression) el.getValue()).getContents();
-
-								} else {
-									if ( ! (el_.getFirstChild() instanceof StringLiteralExpression)) {
-										// invalid value
-										continue;
-									}
-
-									fullEventName = ((StringLiteralExpression) el_.getFirstChild()).getContents();
-									if ( ! fullEventName.contains("::")) {
-										continue;
-									}
-									callbackMethodName = fullEventName.split("::")[1];
-								}
-
-								String[] tmp = fullEventName.split("::");
-								if (tmp.length != 2) {
-									// invalid event name
-									continue;
-								}
-
-								String eventNameClass, eventNameField;
-								eventNameClass = tmp[0].replace("\\\\", "\\");
-								if(eventNameClass.startsWith("\\")) {
-									eventNameClass = eventNameClass.substring(1);
-								}
-								eventNameField = tmp[1];
-
-								// match?
-								if (forField.getContainingClass().getPresentableFQN().equals(eventNameClass) && forField.getName().equals(eventNameField)) {
-									Method cb = method.getContainingClass().findMethodByName(callbackMethodName);
-									if (cb != null) {
-										result.add(cb);
+										result.add(listener);
 									}
 								}
 							}
@@ -103,6 +58,138 @@ public class EventsUtil {
 			}
 		}
 
-		return result.size() > 0 ? result : null;
+		return result;
+
+	}
+
+	@Nullable
+	private static Collection<EventListener> resolveListeners(final PsiElement element) {
+		if (!(element.getParent() instanceof ArrayCreationExpression)) {
+			throw new IllegalArgumentException();
+		}
+
+		return ApplicationManager.getApplication().runReadAction(new Computable<Collection<EventListener>>() {
+			@Override
+			public Collection<EventListener> compute() {
+				String fullEventName;
+				String callbackMethodName = null;
+
+				PsiElement _tempEl = element;
+				while (!(_tempEl instanceof PhpClass) && _tempEl.getParent() != null) {
+					_tempEl = _tempEl.getParent();
+				}
+				PhpClass phpClass;
+				if (_tempEl instanceof PhpClass) {
+					phpClass = (PhpClass) _tempEl;
+				} else {
+					return null;
+				}
+				Collection<String> methods = new ArrayList<String>();
+
+				if (element instanceof ArrayHashElement) { // key => value
+					ArrayHashElement el;
+					el = (ArrayHashElement) element;
+
+					fullEventName = ElementValueResolver.resolve((el.getKey()));
+					if (el.getValue() instanceof ArrayCreationExpression) {
+						PsiElement[] children = el.getValue().getChildren();
+						// [[method, priority], ...]
+						if (children.length > 0 && children[0].getFirstChild() instanceof ArrayCreationExpression) {
+							for (PsiElement listenerEl : children) {
+								if (listenerEl.getFirstChild() instanceof ArrayCreationExpression
+										&& listenerEl.getFirstChild().getChildren().length == 2) {
+									methods.add(ElementValueResolver.resolve(listenerEl.getFirstChild().getChildren()[0].getFirstChild()));
+								}
+							}
+						} else if (children.length == 2) { // [method, priority]
+							methods.add(ElementValueResolver.resolve(children[0].getFirstChild()));
+						}
+					} else {
+						methods.add(ElementValueResolver.resolve(el.getValue()));
+					}
+					if (fullEventName == null || methods.size() == 0) {
+						return null;
+					}
+
+				} else {
+					fullEventName = ElementValueResolver.resolve((PhpPsiElement) element.getFirstChild());
+					if (fullEventName == null) {
+						return null;
+					}
+				}
+				Event event = createEvent(fullEventName);
+				if (event == null) {
+					return null;
+				}
+				if (methods.size() == 0) {
+					methods.add(event instanceof NetteEvent ? ((NetteEvent) event).getEventName() : event.getIdentifier());
+				}
+				Collection<EventListener> listeners = new ArrayList<EventListener>();
+				for (String method : methods) {
+					Method cb = phpClass.findMethodByName(method);
+					if (cb != null) {
+						listeners.add(new EventListener(event, cb));
+					}
+				}
+				return listeners;
+			}
+		});
+	}
+
+	public static boolean isInGetSubscribedEvents(PsiElement el) {
+
+		while (el != null) {
+			if (el instanceof Method) {
+				if (((Method) el).getName().equals("getSubscribedEvents")) {
+					return true;
+				}
+			}
+
+			el = el.getParent();
+		}
+
+		return false;
+	}
+
+	@Nullable
+	public static Event createEvent(String value) {
+		if (!value.contains("::")) {
+			return new Event(value);
+		}
+		String[] tmp = value.split("::");
+		if (tmp.length != 2) {
+			return null;
+		}
+		String className = tmp[0].replace("\\\\", "\\"), fieldName = tmp[1];
+		if (className.startsWith("\\")) {
+			className = className.substring(1);
+		}
+		return new NetteEvent(className, fieldName);
+	}
+
+	public static PsiElement getEventIdentifierInArray(PsiElement element) {
+		while (true) {
+			if (element == null ||
+					!(element instanceof PhpPsiElement)
+					|| !isInGetSubscribedEvents(element)) {
+				return null;
+			}
+			if (element.getParent() instanceof ArrayHashElement && ((ArrayHashElement) element.getParent()).getKey() != element.getFirstChild()) {
+				return null;
+			}
+			if (element.getParent() instanceof ArrayCreationExpression) {
+				break;
+			}
+			element = element.getParent();
+		}
+
+
+		if (element instanceof ArrayHashElement) {
+			element = ((ArrayHashElement) element).getKey();
+		} else {
+			element = element.getFirstChild();
+		}
+
+		return element;
 	}
 }

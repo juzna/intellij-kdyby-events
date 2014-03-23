@@ -5,48 +5,41 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.*;
 import com.intellij.util.ProcessingContext;
 import com.jetbrains.php.lang.parser.PhpElementTypes;
-import com.jetbrains.php.lang.psi.elements.Method;
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression;
 import org.jetbrains.annotations.NotNull;
-
 
 
 /**
  * Click thru event subscriber to event definition
  */
-public class EventReferenceContributor extends PsiReferenceContributor
-{
+public class EventReferenceContributor extends PsiReferenceContributor {
 
 	@Override
 	public void registerReferenceProviders(PsiReferenceRegistrar registrar) {
 		registrar.registerReferenceProvider(PlatformPatterns.psiElement(PhpElementTypes.STRING), new PsiReferenceProvider() {
 			@NotNull
 			@Override
-			public PsiReference[] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext processingContext) {
-				// if i'm within method getSubscribedEvents of a Subscriber?
-				PsiElement el = element;
-				boolean isInSubscriber = false;
-				while (el != null) {
-					if (el instanceof Method) {
-						if (((Method) el).getName().equals("getSubscribedEvents")) {
-							isInSubscriber = true;
-						}
-					}
-
-					el = el.getParent();
+			public PsiReference[] getReferencesByElement(@NotNull PsiElement originalElement, @NotNull ProcessingContext processingContext) {
+				if (!(originalElement instanceof StringLiteralExpression)) {
+					return new PsiReference[0];
+				}
+				PsiElement element = EventsUtil.getEventIdentifierInArray(originalElement);
+				if (element == null) {
+					return new PsiReference[0];
 				}
 
-				if (element instanceof StringLiteralExpression && isInSubscriber) {
-					String contents = ((StringLiteralExpression) element).getContents();
-					if (contents.contains("::")) {
-						String[] tmp = contents.split("::");
-						String className = tmp[0].replace("\\\\", "\\"), fieldName = tmp[1];
-
-						return new PsiReference[] { new EventNameReference(element, className, fieldName) };
-					}
+				String content = ElementValueResolver.resolve(element);
+				if (content == null) {
+					return new PsiReference[0];
+				}
+				Event event = EventsUtil.createEvent(content);
+				if (event == null) {
+					return new PsiReference[0];
 				}
 
-				return new PsiReference[0];
+				return new PsiReference[]{new EventNameReference(originalElement, event)};
+
+
 			}
 		});
 	}

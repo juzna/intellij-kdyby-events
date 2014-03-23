@@ -1,11 +1,11 @@
 package cz.juzna.intellij.kdyby.events;
 
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReferenceBase;
-import com.jetbrains.php.PhpIndex;
-import com.jetbrains.php.lang.psi.elements.Field;
-import com.jetbrains.php.lang.psi.elements.PhpClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,31 +13,19 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Reference to an event name (i.e. to field declaration)
  */
-public class EventNameReference extends PsiReferenceBase<PsiElement>
-{
+public class EventNameReference extends PsiReferenceBase<PsiElement> {
+	private Event event;
 
-	private String className;
-	private String fieldName;
-
-
-	public EventNameReference(@NotNull PsiElement element, @NotNull String className, @NotNull String fieldName) {
+	public EventNameReference(@NotNull PsiElement element, @NotNull Event event) {
 		super(element);
-		this.className = className;
-		this.fieldName = fieldName;
+		this.event = event;
 	}
 
 
 	@Nullable
 	@Override
 	public PsiElement resolve() {
-		for (PhpClass clazz : PhpIndex.getInstance(myElement.getProject()).getClassesByFQN(className)) {
-			Field field = clazz.findFieldByName(fieldName, false);
-			if (field != null) {
-				return field;
-			}
-		}
-
-		return null;
+		return event.resolveDeclaration(getElement().getProject());
 	}
 
 
@@ -47,4 +35,21 @@ public class EventNameReference extends PsiReferenceBase<PsiElement>
 		return PsiElement.EMPTY_ARRAY;
 	}
 
+	@Override
+	public TextRange getRangeInElement() {
+		try {
+			return super.getRangeInElement();
+		} catch (Exception e) {
+			return ApplicationManager.getApplication().runReadAction(new Computable<TextRange>() {
+				@Override
+				public TextRange compute() {
+					return new TextRange(0, getElement().getText().length() - 1);
+				}
+			});
+		}
+	}
+
+	public Event getEvent() {
+		return event;
+	}
 }

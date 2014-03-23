@@ -1,40 +1,42 @@
 <idea-plugin version="2">
-  <id>cz.juzna.intellij.kdyby.events</id>
-  <name>Kdyby Events support</name>
-  <version>0.1.1</version>
-  <vendor email="juzna.cz@gmail.com" url="http://juzna.cz">Jan Dolecek</vendor>
+    <id>cz.juzna.intellij.kdyby.events</id>
+    <name>Kdyby Events support</name>
+    <version>0.1.1</version>
+    <vendor email="juzna.cz@gmail.com" url="http://juzna.cz">Jan Dolecek</vendor>
 
     <depends>com.intellij.modules.lang</depends>
     <depends>com.jetbrains.php</depends>
 
-  <description><![CDATA[
+    <description><![CDATA[
       Support for <strong>Kdyby Events</strong> library
   ]]></description>
 
-  <change-notes><![CDATA[
+    <change-notes><![CDATA[
     0.1.1 - bug fixes
     0.1 - first proof of concept
   ]]>
-  </change-notes>
+    </change-notes>
 
-  <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="129.1"/>
+    <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
+    <idea-version since-build="129.1"/>
 
-  <application-components>
-    <!-- Add your application components here -->
-  </application-components>
+    <application-components>
+        <!-- Add your application components here -->
+    </application-components>
 
-  <project-components>
-    <!-- Add your project components here -->
-  </project-components>
+    <project-components>
+        <!-- Add your project components here -->
+    </project-components>
 
-  <actions>
-    <!-- Add your actions here -->
-  </actions>
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <codeInsight.lineMarkerProvider language="PHP" implementationClass="cz.juzna.intellij.kdyby.events.MarkerProvider" />
-      <completion.contributor language="PHP" implementationClass="cz.juzna.intellij.kdyby.events.CompletionContributor" />
-      <psi.referenceContributor implementation="cz.juzna.intellij.kdyby.events.EventReferenceContributor" />
-  </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <codeInsight.lineMarkerProvider language="PHP"
+                                        implementationClass="cz.juzna.intellij.kdyby.events.MarkerProvider"/>
+        <completion.contributor language="PHP"
+                                implementationClass="cz.juzna.intellij.kdyby.events.CompletionContributor"/>
+        <psi.referenceContributor implementation="cz.juzna.intellij.kdyby.events.EventReferenceContributor"/>
+    </extensions>
 </idea-plugin>
