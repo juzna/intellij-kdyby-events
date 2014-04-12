@@ -79,6 +79,9 @@ public class EventsUtil {
 
 								String eventNameClass, eventNameField;
 								eventNameClass = tmp[0].replace("\\\\", "\\");
+								if(eventNameClass.startsWith("\\")) {
+									eventNameClass = eventNameClass.substring(1);
+								}
 								eventNameField = tmp[1];
 
 								// match?
