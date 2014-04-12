@@ -46,10 +46,14 @@ public class CompletionContributor extends com.intellij.codeInsight.completion.C
 
 							PhpIndex index = PhpIndex.getInstance(completionParameters.getPosition().getProject());
 							for (String className : index.getAllClassNames(prefixMatcher)) {
-								for (PhpClass clazz : index.getClassesByFQN(className)) {
+								for (PhpClass clazz : index.getClassesByName(className)) {
 									for (Field field : clazz.getOwnFields()) {
 										if (field.getName().startsWith("on")) {
-											resultSet.addElement(LookupElementBuilder.create(className + "::" + field.getName()));
+											String fqn = clazz.getFQN();
+											if(fqn.startsWith("\\")) {
+												fqn = fqn.substring(1);
+											}
+											resultSet.addElement(LookupElementBuilder.create(fqn + "::" + field.getName()).withIcon(Icons.EVENT_ICON));
 										}
 									}
 								}
