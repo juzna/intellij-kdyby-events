@@ -20,4 +20,8 @@ public class Event {
 	public PsiElement resolveDeclaration(Project project) {
 		return null;
 	}
+
+	public boolean equals(Event obj) {
+		return this.identifier.equals(obj.getIdentifier());
+	}
 }
