@@ -36,9 +36,6 @@ public class EventsUtil {
 							assert arr != null;
 							for (PsiElement el_ : arr.getChildren()) {
 								for (EventListener listener : resolveListeners(el_)) {
-									if (listener == null) {
-										continue;
-									}
 									if (listener.getEvent().equals(event)) {
 										result.add(listener);
 									}
@@ -78,7 +75,7 @@ public class EventsUtil {
 				if (_tempEl instanceof PhpClass) {
 					phpClass = (PhpClass) _tempEl;
 				} else {
-					return null;
+					return new ArrayList<EventListener>();
 				}
 				Collection<String> methods = new ArrayList<String>();
 
@@ -104,18 +101,18 @@ public class EventsUtil {
 						methods.add(ElementValueResolver.resolve(el.getValue()));
 					}
 					if (fullEventName == null || methods.size() == 0) {
-						return null;
+						return new ArrayList<EventListener>();
 					}
 
 				} else {
 					fullEventName = ElementValueResolver.resolve(element.getFirstChild());
 					if (fullEventName == null) {
-						return null;
+						return new ArrayList<EventListener>();
 					}
 				}
 				Event event = EventFactory.create(fullEventName);
 				if (event == null) {
-					return null;
+					return new ArrayList<EventListener>();
 				}
 				if (methods.size() == 0) {
 					methods.add(event.getShortName());
