@@ -38,5 +38,6 @@
         <completion.contributor language="PHP"
                                 implementationClass="cz.juzna.intellij.kdyby.events.CompletionContributor"/>
         <psi.referenceContributor implementation="cz.juzna.intellij.kdyby.events.EventReferenceContributor"/>
+        <gotoDeclarationHandler implementation="cz.juzna.intellij.kdyby.events.EventInvocationGoToDeclarationHandler"/>
     </extensions>
 </idea-plugin>
