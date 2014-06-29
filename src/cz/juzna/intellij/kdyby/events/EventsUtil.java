@@ -118,7 +118,7 @@ public class EventsUtil {
 					return null;
 				}
 				if (methods.size() == 0) {
-					methods.add(event instanceof NetteEvent ? ((NetteEvent) event).getEventName() : event.getIdentifier());
+					methods.add(event.getShortName());
 				}
 				Collection<EventListener> listeners = new ArrayList<EventListener>();
 				for (String method : methods) {

@@ -3,10 +3,8 @@ package cz.juzna.intellij.kdyby.events;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.psi.PsiElement;
-import com.jetbrains.php.PhpIndex;
 import com.jetbrains.php.lang.psi.elements.ArrayCreationExpression;
 import com.jetbrains.php.lang.psi.elements.ArrayHashElement;
-import com.jetbrains.php.lang.psi.elements.PhpClass;
 
 
 public class SubscriberAnnotator implements Annotator {
@@ -23,21 +21,10 @@ public class SubscriberAnnotator implements Annotator {
 		}
 		Event event = EventFactory.create(eventName);
 		if (event instanceof NetteEvent) {
-			if (!eventExists((NetteEvent) event, PhpIndex.getInstance(psiElement.getProject()))) {
+			if (!(NetteEventUtils.getFieldByEvent((NetteEvent) event, psiElement.getProject()) != null)) {
 				annotationHolder.createWarningAnnotation(psiElement, "Event " + event.getIdentifier() + " not found");
 			}
-
 		}
-
-	}
-
-	private static boolean eventExists(NetteEvent event, PhpIndex index) {
-		for (PhpClass phpClass : index.getClassesByFQN(event.getClassName())) {
-			if (phpClass.findFieldByName(event.getEventName(), false) != null) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 }
