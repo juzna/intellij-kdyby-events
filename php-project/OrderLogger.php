@@ -6,14 +6,28 @@ class OrderLogger implements \Kdyby\Events\Subscriber
     public function getSubscribedEvents()
     {
         return array(
-            'OrderService::onAdd' => 'logAdd',
-            'OrderService::onSave' => 'logAdd',
+            "OrderService::onSave" => "logAdd", //basic nette event listener
+            OrderService::class . "::onAdd" => ["logAdd", 10], //with priority
+            Events::MY_FOO_EVENT, //symfony event listener
+            Events::preFlush, //doctrine event listener
+            "OrderService::onAddd", //undefined event
         );
+    }
+
+    public function foo()
+    {
+
     }
 
     public function logAdd()
     {
 
     }
+
+    public function preFlush()
+    {
+
+    }
+
 
 }
