@@ -39,5 +39,6 @@
                                 implementationClass="cz.juzna.intellij.kdyby.events.CompletionContributor"/>
         <psi.referenceContributor implementation="cz.juzna.intellij.kdyby.events.EventReferenceContributor"/>
         <gotoDeclarationHandler implementation="cz.juzna.intellij.kdyby.events.EventInvocationGoToDeclarationHandler"/>
+        <annotator implementationClass="cz.juzna.intellij.kdyby.events.SubscriberAnnotator" language="PHP"/>
     </extensions>
 </idea-plugin>
