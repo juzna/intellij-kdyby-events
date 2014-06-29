@@ -5,10 +5,8 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider;
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder;
 import com.intellij.psi.PsiElement;
 import com.jetbrains.php.PhpIndex;
-import com.jetbrains.php.lang.psi.elements.Field;
-import com.jetbrains.php.lang.psi.elements.Method;
-import com.jetbrains.php.lang.psi.elements.MethodReference;
-import com.jetbrains.php.lang.psi.elements.PhpClass;
+import com.jetbrains.php.lang.psi.elements.*;
+import com.jetbrains.php.lang.psi.resolve.types.PhpType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -21,32 +19,56 @@ import java.util.List;
  */
 public class MarkerProvider extends RelatedItemLineMarkerProvider {
 
+	PhpType doctrineEvm = new PhpType().add("Doctrine\\Common\\EventManager");
+	PhpType symfonyEvm = new PhpType().add("Symfony\\Component\\EventDispatcher\\EventDispatcherInterface");
+
+
 	@Override
 	protected void collectNavigationMarkers(@NotNull PsiElement element, Collection<? super RelatedItemLineMarkerInfo> result) {
+		Event event = null;
 		// event declaration
 		if (element instanceof Field) {
 			Field field = (Field) element;
-			addMarkers(element, result, field);
+			if (field.getName().startsWith("on")) {
+				event = EventFactory.create(field);
+			}
 		}
-
 		// event invocation
 		if (element instanceof MethodReference) {
-			MethodReference method = (MethodReference) element;
-
-			for (String className : method.getClassReference().getType().getTypes()) {
-				for (PhpClass clazz : PhpIndex.getInstance(element.getProject()).getClassesByFQN(className)) {
-					Field field = clazz.findFieldByName(method.getName(), false);
-					if (field != null) {
-						addMarkers(element, result, field);
-					}
-				}
-			}
+			event = getEventFromInvocation(element, (MethodReference) element);
+		}
+		if (event != null) {
+			addMarkers(element, result, event);
 		}
 	}
 
-	private void addMarkers(PsiElement element, Collection<? super RelatedItemLineMarkerInfo> result, Field field) {
+
+	private Event getEventFromInvocation(PsiElement element, MethodReference method) {
+		PhpExpression classReference = method.getClassReference();
+		Event event = null;
+		if (method.getName().startsWith("on")) {
+			for (PhpClass clazz : PhpIndexUtils.getClasses(classReference, element.getProject())) {
+				Field field = clazz.findFieldByName(method.getName(), false);
+				if (field != null) {
+					event = EventFactory.create(field);
+				}
+			}
+		} else if ((method.getName().equals("dispatchEvent")
+				&& doctrineEvm.isConvertibleFrom(classReference.getType(), PhpIndex.getInstance(element.getProject())))
+				|| (method.getName().equals("dispatch")
+				&& symfonyEvm.isConvertibleFrom(classReference.getType(), PhpIndex.getInstance(element.getProject())))) {
+
+			String eventName = ElementValueResolver.resolve(method.getParameterList().getFirstChild());
+			if (eventName != null) {
+				event = EventFactory.create(eventName);
+			}
+		}
+		return event;
+	}
+
+	private void addMarkers(PsiElement element, Collection<? super RelatedItemLineMarkerInfo> result, Event event) {
 		final List<Method> methods = new ArrayList<Method>();
-		for (EventListener eventListener : EventsUtil.findListeners(field)) {
+		for (EventListener eventListener : EventsUtil.findListeners(event, element.getProject())) {
 			methods.add(eventListener.getMethod());
 		}
 		if (methods != null && methods.size() > 0) {

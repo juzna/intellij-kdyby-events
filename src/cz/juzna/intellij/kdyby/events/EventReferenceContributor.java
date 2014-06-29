@@ -32,7 +32,7 @@ public class EventReferenceContributor extends PsiReferenceContributor {
 				if (content == null) {
 					return new PsiReference[0];
 				}
-				Event event = EventsUtil.createEvent(content);
+				Event event = EventFactory.create(content);
 				if (event == null) {
 					return new PsiReference[0];
 				}

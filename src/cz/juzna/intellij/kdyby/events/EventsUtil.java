@@ -1,6 +1,7 @@
 package cz.juzna.intellij.kdyby.events;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import com.jetbrains.php.PhpIndex;
@@ -15,11 +16,10 @@ import java.util.Collection;
 public class EventsUtil {
 
 
-	public static Collection<EventListener> findListeners(final Field field) {
+	public static Collection<EventListener> findListeners(final Event event, Project project) {
 		final Collection<EventListener> result = new ArrayList<EventListener>();
-		final PhpClass phpClass = field.getContainingClass();
 
-		PhpIndex phpIndex = PhpIndex.getInstance(field.getProject());
+		PhpIndex phpIndex = PhpIndex.getInstance(project);
 		for (final PhpClass clazz : phpIndex.getAllSubclasses("Kdyby\\Events\\Subscriber")) {
 
 			final Method method = clazz.findMethodByName("getSubscribedEvents");
@@ -36,13 +36,10 @@ public class EventsUtil {
 							assert arr != null;
 							for (PsiElement el_ : arr.getChildren()) {
 								for (EventListener listener : resolveListeners(el_)) {
-									if (listener == null || !(listener.getEvent() instanceof NetteEvent)) {
+									if (listener == null) {
 										continue;
 									}
-									NetteEvent event = (NetteEvent) listener.getEvent();
-									if (phpClass.getPresentableFQN().equals(event.getClassName())
-											&& (field.getName().equals(event.getEventName()))) {
-
+									if (listener.getEvent().equals(event)) {
 										result.add(listener);
 									}
 								}
@@ -72,7 +69,6 @@ public class EventsUtil {
 			@Override
 			public Collection<EventListener> compute() {
 				String fullEventName;
-				String callbackMethodName = null;
 
 				PsiElement _tempEl = element;
 				while (!(_tempEl instanceof PhpClass) && _tempEl.getParent() != null) {
@@ -112,12 +108,12 @@ public class EventsUtil {
 					}
 
 				} else {
-					fullEventName = ElementValueResolver.resolve((PhpPsiElement) element.getFirstChild());
+					fullEventName = ElementValueResolver.resolve(element.getFirstChild());
 					if (fullEventName == null) {
 						return null;
 					}
 				}
-				Event event = createEvent(fullEventName);
+				Event event = EventFactory.create(fullEventName);
 				if (event == null) {
 					return null;
 				}
@@ -137,34 +133,19 @@ public class EventsUtil {
 	}
 
 	public static boolean isInGetSubscribedEvents(PsiElement el) {
+		Method method = getContainingMethod(el);
+		return method != null && method.getName().equals("getSubscribedEvents");
+	}
 
+	public static Method getContainingMethod(PsiElement el) {
 		while (el != null) {
 			if (el instanceof Method) {
-				if (((Method) el).getName().equals("getSubscribedEvents")) {
-					return true;
-				}
+				return (Method) el;
 			}
-
 			el = el.getParent();
 		}
 
-		return false;
-	}
-
-	@Nullable
-	public static Event createEvent(String value) {
-		if (!value.contains("::")) {
-			return new Event(value);
-		}
-		String[] tmp = value.split("::");
-		if (tmp.length != 2) {
-			return null;
-		}
-		String className = tmp[0].replace("\\\\", "\\"), fieldName = tmp[1];
-		if (className.startsWith("\\")) {
-			className = className.substring(1);
-		}
-		return new NetteEvent(className, fieldName);
+		return null;
 	}
 
 	public static PsiElement getEventIdentifierInArray(PsiElement element) {

@@ -21,7 +21,7 @@ public class SubscriberAnnotator implements Annotator {
 		if (eventName == null) {
 			return;
 		}
-		Event event = EventsUtil.createEvent(eventName);
+		Event event = EventFactory.create(eventName);
 		if (event instanceof NetteEvent) {
 			if (!eventExists((NetteEvent) event, PhpIndex.getInstance(psiElement.getProject()))) {
 				annotationHolder.createWarningAnnotation(psiElement, "Event " + event.getIdentifier() + " not found");
