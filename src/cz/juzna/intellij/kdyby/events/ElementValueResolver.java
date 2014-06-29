@@ -3,10 +3,7 @@ package cz.juzna.intellij.kdyby.events;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.jetbrains.php.lang.parser.PhpElementTypes;
-import com.jetbrains.php.lang.psi.elements.BinaryExpression;
-import com.jetbrains.php.lang.psi.elements.ClassConstantReference;
-import com.jetbrains.php.lang.psi.elements.ClassReference;
-import com.jetbrains.php.lang.psi.elements.StringLiteralExpression;
+import com.jetbrains.php.lang.psi.elements.*;
 
 
 public class ElementValueResolver {
@@ -42,11 +39,19 @@ public class ElementValueResolver {
 			ClassConstantReference constantReference = (ClassConstantReference) element;
 			ClassReference classReference = (ClassReference) constantReference.getClassReference();
 			if (constantReference.getLastChild() instanceof LeafPsiElement) {
-				String constant = ((LeafPsiElement) constantReference.getLastChild()).getText();
-				if (constant.equals("class")) {
+				String constantName = constantReference.getLastChild().getText();
+				if (constantName.equals("class")) {
 					return classReference.getFQN();
 				}
-				//todo: standard class constants
+				for (PhpClass phpClass : PhpIndexUtils.getClasses(classReference, element.getProject())) {
+					Field constant = phpClass.findFieldByName(constantName, true);
+					if (constant != null && constant.isConstant()) {
+						try {
+							return doResolve(constant.getDefaultValue());
+						} catch (UnresolvableValueException e) {
+						}
+					}
+				}
 			}
 		}
 		throw new UnresolvableValueException();
