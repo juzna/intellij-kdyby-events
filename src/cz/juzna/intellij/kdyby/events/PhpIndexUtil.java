@@ -9,7 +9,7 @@ import com.jetbrains.php.lang.psi.elements.PhpTypedElement;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class PhpIndexUtils {
+public class PhpIndexUtil {
 
 	public static Collection<PhpClass> getClasses(PhpTypedElement element, Project project) {
 		PhpIndex phpIndex = PhpIndex.getInstance(project);

@@ -21,7 +21,7 @@ public class SubscriberAnnotator implements Annotator {
 		}
 		Event event = EventFactory.create(eventName);
 		if (event instanceof NetteEvent) {
-			if (NetteEventUtils.getFieldByEvent((NetteEvent) event, psiElement.getProject()) == null) {
+			if (NetteEventUtil.getFieldByEvent((NetteEvent) event, psiElement.getProject()) == null) {
 				annotationHolder.createWarningAnnotation(psiElement, "Event " + event.getIdentifier() + " not found");
 			}
 		}

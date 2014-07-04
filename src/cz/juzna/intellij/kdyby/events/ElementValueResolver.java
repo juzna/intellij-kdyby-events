@@ -43,7 +43,7 @@ public class ElementValueResolver {
 				if (constantName.equals("class")) {
 					return classReference.getFQN();
 				}
-				for (PhpClass phpClass : PhpIndexUtils.getClasses(classReference, element.getProject())) {
+				for (PhpClass phpClass : PhpIndexUtil.getClasses(classReference, element.getProject())) {
 					Field constant = phpClass.findFieldByName(constantName, true);
 					if (constant != null && constant.isConstant()) {
 						try {

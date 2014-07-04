@@ -26,6 +26,6 @@ public class NetteEvent extends Event {
 
 	@Override
 	public PsiElement resolveDeclaration(Project project) {
-		return NetteEventUtils.getFieldByEvent(this, project);
+		return NetteEventUtil.getFieldByEvent(this, project);
 	}
 }

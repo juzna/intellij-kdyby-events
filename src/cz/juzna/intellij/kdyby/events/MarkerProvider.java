@@ -47,7 +47,7 @@ public class MarkerProvider extends RelatedItemLineMarkerProvider {
 		PhpExpression classReference = method.getClassReference();
 		Event event = null;
 		if (method.getName().startsWith("on")) {
-			for (PhpClass clazz : PhpIndexUtils.getClasses(classReference, element.getProject())) {
+			for (PhpClass clazz : PhpIndexUtil.getClasses(classReference, element.getProject())) {
 				Field field = clazz.findFieldByName(method.getName(), false);
 				if (field != null) {
 					event = EventFactory.create(field);

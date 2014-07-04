@@ -49,7 +49,7 @@ public class CompletionContributor extends com.intellij.codeInsight.completion.C
 				}
 			}
 
-			for (NetteEvent event : NetteEventUtils.findEvents(classes)) {
+			for (NetteEvent event : NetteEventUtil.findEvents(classes)) {
 				LookupElementBuilder lookupElementBuilder = null;
 				if (element instanceof StringLiteralExpression) {
 					lookupElementBuilder = LookupElementBuilder.create(event.getClassName() + "::" + event.getEventName());

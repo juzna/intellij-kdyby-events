@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 
-public class NetteEventUtils {
+public class NetteEventUtil {
 
 	public static Field getFieldByEvent(NetteEvent event, Project project) {
 		for (PhpClass clazz : PhpIndex.getInstance(project).getClassesByFQN(event.getClassName())) {
