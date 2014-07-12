@@ -1,7 +1,7 @@
 <idea-plugin version="2">
     <id>cz.juzna.intellij.kdyby.events</id>
     <name>Kdyby Events support</name>
-    <version>0.1.1</version>
+    <version>0.2.0</version>
     <vendor email="juzna.cz@gmail.com" url="http://juzna.cz">Jan Dolecek</vendor>
 
     <depends>com.intellij.modules.lang</depends>
@@ -12,8 +12,29 @@
   ]]></description>
 
     <change-notes><![CDATA[
-    0.1.1 - bug fixes
-    0.1 - first proof of concept
+    <h2>0.2.0</h2>
+    <ul>
+        <li>Improved completion</li>
+        <li>Added support for Foo::class . "::onBar" syntax</li>
+        <li>"Go To Declaration" handler for event invocation</li>
+        <li>Added support for listeners priority</li>
+        <li>Added annotator: show warning for subscriptions to non-existent classes/events [#6]</li>
+        <li>Marker provider works with Doctrine and Symfony events invocation (dispatch/dispatchEvent)</li>
+        <li>Refactoring support: change event name in subscriber when Nette event is renamed</li>
+    </ul>
+    <h2>0.1.2</h2>
+    <ul>
+        <li>Bug fixes</li>
+    </ul>
+    <h2>0.1.1</h2>
+    <ul>
+        <li>Bug fixes</li>
+    </ul>
+    <h2>0.1.0</h2>
+    <ul>
+        <li>First proof of concept</li>
+    </ul>
+
   ]]>
     </change-notes>
 
