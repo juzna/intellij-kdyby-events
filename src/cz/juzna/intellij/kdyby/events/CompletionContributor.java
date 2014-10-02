@@ -8,8 +8,9 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import com.jetbrains.php.PhpIndex;
-import com.jetbrains.php.lang.psi.elements.PhpClass;
-import com.jetbrains.php.lang.psi.elements.StringLiteralExpression;
+import com.jetbrains.php.lang.parser.PhpElementTypes;
+import com.jetbrains.php.lang.psi.PhpPsiElementFactory;
+import com.jetbrains.php.lang.psi.elements.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -22,15 +23,16 @@ public class CompletionContributor extends com.intellij.codeInsight.completion.C
 				PlatformPatterns.psiElement().withParent(StringLiteralExpression.class),
 				new EventsCompletionProvider()
 		);
+		extend(CompletionType.BASIC,
+				PlatformPatterns.psiElement(),
+				new Php55EventsCompletionProvider()
+				);
 	}
 
 	private class EventsCompletionProvider extends CompletionProvider {
 		@Override
 		protected void addCompletions(@NotNull CompletionParameters completionParameters, ProcessingContext processingContext, @NotNull CompletionResultSet resultSet) {
 			PsiElement originalPosition = completionParameters.getOriginalPosition().getParent();
-			if (!(originalPosition instanceof StringLiteralExpression)) {
-				return;
-			}
 			PsiElement element = EventsUtil.getEventIdentifierInArray(originalPosition);
 			if (element == null) {
 				return;
@@ -65,4 +67,22 @@ public class CompletionContributor extends com.intellij.codeInsight.completion.C
 		}
 	}
 
+	private class Php55EventsCompletionProvider extends CompletionProvider {
+		@Override
+		protected void addCompletions(@NotNull CompletionParameters completionParameters, ProcessingContext processingContext, @NotNull CompletionResultSet resultSet) {
+			PsiElement originalPosition = completionParameters.getOriginalPosition();
+			PhpIndex index = PhpIndex.getInstance(completionParameters.getPosition().getProject());
+			Collection<PhpClass> classes;
+			classes = new ArrayList<PhpClass>();
+			for (String className : index.getAllClassNames(new CamelHumpMatcher(""))) {
+				classes.addAll(index.getClassesByName(className));
+			}
+
+			for (NetteEvent event : NetteEventUtil.findEvents(classes)) {
+				LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(event.className + "::class . '::" + event.getShortName() + "'")
+						.withPresentableText(event.getIdentifier());
+				resultSet.addElement(lookupElementBuilder.withIcon(Icons.EVENT_ICON));
+			}
+		}
+	}
 }
