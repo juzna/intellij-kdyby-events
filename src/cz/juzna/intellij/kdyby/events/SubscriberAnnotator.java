@@ -11,7 +11,9 @@ public class SubscriberAnnotator implements Annotator {
 
 	@Override
 	public void annotate(PsiElement psiElement, AnnotationHolder annotationHolder) {
-		if (psiElement.getParent() == null || !(psiElement.getParent() instanceof ArrayCreationExpression)) {
+		if (psiElement.getParent() == null
+				|| !(psiElement.getParent() instanceof ArrayCreationExpression)
+				|| !EventsUtil.isInGetSubscribedEvents(psiElement)) {
 			return;
 		}
 		PsiElement el = psiElement instanceof ArrayHashElement ? ((ArrayHashElement) psiElement).getKey() : psiElement.getFirstChild();
