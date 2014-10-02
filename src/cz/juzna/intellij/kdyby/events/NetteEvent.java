@@ -2,7 +2,7 @@ package cz.juzna.intellij.kdyby.events;
 
 
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
+import com.jetbrains.php.lang.psi.elements.Field;
 
 public class NetteEvent extends Event {
 
@@ -25,7 +25,7 @@ public class NetteEvent extends Event {
 	}
 
 	@Override
-	public PsiElement resolveDeclaration(Project project) {
+	public Field resolveDeclaration(Project project) {
 		return NetteEventUtil.getFieldByEvent(this, project);
 	}
 }
