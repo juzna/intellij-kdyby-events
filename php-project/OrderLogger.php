@@ -11,6 +11,7 @@ class OrderLogger implements \Kdyby\Events\Subscriber
             Events::MY_FOO_EVENT, //symfony event listener
             Events::preFlush, //doctrine event listener
             "OrderService::onAddd", //undefined event
+            OrderService::class . '::onStatusChanged'
         );
     }
 
