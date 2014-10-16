@@ -1,7 +1,7 @@
 <idea-plugin version="2">
     <id>cz.juzna.intellij.kdyby.events</id>
     <name>Kdyby Events support</name>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
     <vendor email="juzna.cz@gmail.com" url="http://juzna.cz">Jan Dolecek</vendor>
 
     <depends>com.intellij.modules.lang</depends>
@@ -12,6 +12,11 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <h2>0.2.1</h2>
+    <ul>
+        <li>Added alternative completion provider for PHP5.5+ (::class syntax)</li>
+        <li>Fixed "Event not found" in wrong context</li>
+    </li>
     <h2>0.2.0</h2>
     <ul>
         <li>Improved completion</li>
