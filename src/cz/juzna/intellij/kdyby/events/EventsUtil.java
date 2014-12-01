@@ -120,9 +120,7 @@ public class EventsUtil {
 				Collection<EventListener> listeners = new ArrayList<EventListener>();
 				for (String method : methods) {
 					Method cb = phpClass.findMethodByName(method);
-					if (cb != null) {
-						listeners.add(new EventListener(event, cb));
-					}
+					listeners.add(new EventListener(event, cb));
 				}
 				return listeners;
 			}
