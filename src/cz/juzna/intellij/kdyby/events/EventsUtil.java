@@ -6,6 +6,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import com.jetbrains.php.PhpIndex;
 import com.jetbrains.php.lang.psi.elements.*;
+import com.jetbrains.php.lang.psi.resolve.types.PhpType;
 import com.jetbrains.php.lang.psi.visitors.PhpRecursiveElementVisitor;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,6 +15,8 @@ import java.util.Collection;
 
 
 public class EventsUtil {
+
+	private static final PhpType subscriberType = new PhpType().add("Kdyby\\Events\\Subscriber");
 
 
 	public static Collection<EventListener> findListeners(final Event event, Project project) {
@@ -167,5 +170,10 @@ public class EventsUtil {
 		}
 
 		return element;
+	}
+
+	public static boolean isClassSuitable(PhpClass cls)
+	{
+		return !cls.isInterface() && subscriberType.isConvertibleFrom(cls.getType(), PhpIndex.getInstance(cls.getProject()));
 	}
 }
