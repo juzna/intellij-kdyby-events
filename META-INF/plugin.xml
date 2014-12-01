@@ -66,5 +66,6 @@
         <psi.referenceContributor implementation="cz.juzna.intellij.kdyby.events.EventReferenceContributor"/>
         <gotoDeclarationHandler implementation="cz.juzna.intellij.kdyby.events.EventInvocationGoToDeclarationHandler"/>
         <annotator implementationClass="cz.juzna.intellij.kdyby.events.SubscriberAnnotator" language="PHP"/>
+        <lang.inspectionSuppressor implementationClass="cz.juzna.intellij.kdyby.events.UndefinedMethodSupressor" language="PHP" order="first"/>
     </extensions>
 </idea-plugin>
