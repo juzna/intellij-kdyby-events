@@ -24,39 +24,50 @@ public class EventsUtil {
 
 		PhpIndex phpIndex = PhpIndex.getInstance(project);
 		for (final PhpClass clazz : phpIndex.getAllSubclasses("Kdyby\\Events\\Subscriber")) {
-
-			final Method method = clazz.findMethodByName("getSubscribedEvents");
-			if (method == null) continue;
-
-			// find all elements of returned array
-			try {
-				method.acceptChildren(new PhpRecursiveElementVisitor() {
-					@Override
-					public void visitPhpReturn(PhpReturn r) {
-						if (r.getArgument() instanceof ArrayCreationExpression) {
-							ArrayCreationExpression arr = (ArrayCreationExpression) r.getArgument();
-
-							assert arr != null;
-							for (PsiElement el_ : arr.getChildren()) {
-								for (EventListener listener : resolveListeners(el_)) {
-									if (listener.getEvent().equals(event)) {
-										result.add(listener);
-									}
-								}
-							}
-						}
-
-						super.visitPhpReturn(r);
-					}
-				});
-			} catch (Exception e) {
-				System.out.println("Error parsing class " + clazz.getPresentableFQN());
-				e.printStackTrace();
-			}
+			result.addAll(findListeners(clazz, event));
 		}
 
 		return result;
+	}
 
+	public static Collection<EventListener> findListeners(PhpClass subscriber)
+	{
+		return findListeners(subscriber, null);
+	}
+
+	private static Collection<EventListener> findListeners(PhpClass subscriber, @Nullable final Event event)
+	{
+		final Method method = subscriber.findMethodByName("getSubscribedEvents");
+		final Collection<EventListener> result = new ArrayList<EventListener>();
+		if (method == null) {
+			return result;
+		}
+		// find all elements of returned array
+		try {
+			method.acceptChildren(new PhpRecursiveElementVisitor() {
+				@Override
+				public void visitPhpReturn(PhpReturn r) {
+					if (r.getArgument() instanceof ArrayCreationExpression) {
+						ArrayCreationExpression arr = (ArrayCreationExpression) r.getArgument();
+
+						assert arr != null;
+						for (PsiElement el_ : arr.getChildren()) {
+							for (EventListener listener : resolveListeners(el_)) {
+								if (event == null || listener.getEvent().equals(event)) {
+									result.add(listener);
+								}
+							}
+						}
+					}
+
+					super.visitPhpReturn(r);
+				}
+			});
+		} catch (Exception e) {
+			System.out.println("Error parsing class " + subscriber.getPresentableFQN());
+			e.printStackTrace();
+		}
+		return result;
 	}
 
 	@Nullable
@@ -122,8 +133,7 @@ public class EventsUtil {
 				}
 				Collection<EventListener> listeners = new ArrayList<EventListener>();
 				for (String method : methods) {
-					Method cb = phpClass.findMethodByName(method);
-					listeners.add(new EventListener(event, cb));
+					listeners.add(new EventListener(event, phpClass, method));
 				}
 				return listeners;
 			}
