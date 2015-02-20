@@ -69,9 +69,11 @@ public class MarkerProvider extends RelatedItemLineMarkerProvider {
 	private void addMarkers(PsiElement element, Collection<? super RelatedItemLineMarkerInfo> result, Event event) {
 		final List<Method> methods = new ArrayList<Method>();
 		for (EventListener eventListener : EventsUtil.findListeners(event, element.getProject())) {
-			methods.add(eventListener.getMethod());
+			if(eventListener.getMethod() != null) {
+				methods.add(eventListener.getMethod());
+			}
 		}
-		if (methods != null && methods.size() > 0) {
+		if (methods.size() > 0) {
 			NavigationGutterIconBuilder<PsiElement> builder =
 					NavigationGutterIconBuilder.create(Icons.EVENT_ICON).
 							setTargets(methods).

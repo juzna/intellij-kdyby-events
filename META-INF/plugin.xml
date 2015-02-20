@@ -67,4 +67,16 @@
         <gotoDeclarationHandler implementation="cz.juzna.intellij.kdyby.events.EventInvocationGoToDeclarationHandler"/>
         <annotator implementationClass="cz.juzna.intellij.kdyby.events.SubscriberAnnotator" language="PHP"/>
     </extensions>
+    <actions>
+        <group id="EventGenerators">
+            <action class="cz.juzna.intellij.kdyby.events.actions.GenerateEventListenersAction" id="GenerateEventListenersAction"
+                    text="Event listener..."
+                    description="Create listener methods."/>
+            <action class="cz.juzna.intellij.kdyby.events.actions.GenerateInlineListenerAction" id="GenerateInlineListenerAction"
+                    text="Event listener..."
+                    description="Create inline listener."/>
+            <add-to-group group-id="GenerateGroup" anchor="last"/>
+        </group>
+
+    </actions>
 </idea-plugin>
